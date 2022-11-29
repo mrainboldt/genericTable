@@ -1,0 +1,157 @@
+<template>
+    <lightning-card title={tableHeader}>
+        <template if:true={canCreate}>    
+            <div slot="actions">
+                <div class="slds-grid slds-gutters">
+                    <div class="slds-col">
+                        <lightning-button 
+                                label={newRecordButtonLabel} 
+                                title={newRecordButtonLabel}
+                                onclick={openUpsertRecordModal}>
+                        </lightning-button>
+                    </div>
+                </div>
+            </div>
+        </template>
+        <template if:true={hasData}>
+            <template if:true={displayFooter}>
+                <div slot="footer">
+                    <div class="slds-m-vertical_small">
+                        <div class="slds-grid">
+                            <div class="slds-col slds-size_10-of-12">
+                                <div class="slds-grid slds-gutters slds-grid_align-center">
+                                    <div class="slds-col">
+                                        <lightning-button-icon 
+                                                icon-name="utility:chevronleft" 
+                                                variant="bare" 
+                                                onclick={handlePageBack}
+                                                alternative-text="previous page" 
+                                                title="previous page">
+                                        </lightning-button-icon>
+                                    </div>
+                                    <div class="slds-col">
+                                            <p>Page {currentPage} of {totalPages}</p>
+                                    </div>
+                                    <div class="slds-col">
+                                        <lightning-button-icon 
+                                                icon-name="utility:chevronright" 
+                                                variant="bare" 
+                                                onclick={handlePageForward}
+                                                alternative-text="next page" 
+                                                title="next page">
+                                        </lightning-button-icon>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_2-of-12">
+                                <div class="slds-grid slds-grid_align-end">
+                                    <div class="slds-col slds-size_4-of-6">
+                                        <label>
+                                            Records per page
+                                        </label>
+                                    </div>
+                                    <div class="slds-col slds-size_2-of-6">
+                                        <lightning-input 
+                                                type="number"
+                                                step="1"
+                                                value={recordsPerPage}
+                                                onchange={handleRecordsPerPageChanged}
+                                                variant="label-hidden"
+                                                max-length="2">
+                                        </lightning-input>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered" >
+                <thead>
+                    <tr>
+                        <template for:each={fieldObjects} for:item="fld">
+                            <th key={fld.fieldPath} data-fieldname={fld.fieldPath} data-datatype={fld.typeApex} class="pointer" onclick={handleColumnSort}>
+                                {fld.label}
+                                <template if:true={fld.isSort}>
+                                    <lightning-icon 
+                                            icon-name={fld.sortIcon}
+                                            alternative-text="sort" 
+                                            size="x-small" 
+                                            title="sort"
+                                            class="slds-float_right">
+                                    </lightning-icon>
+                                </template>
+                            </th>
+                        </template>
+                        <template if:true={canEdit}>
+                            <th>
+                                &nbsp;
+                            </th>
+                        </template>
+                    </tr>
+                </thead>
+                <tbody class="draggable row_drag" draggable={enableDragDrop} ondrop={enableDragDrop}>
+                    <!-- <tbody class="row_drag ui-sortable"> -->
+                    <template for:each={recordsToShow} for:item="rec">
+                        <tr key={rec.Id} data-record-id={rec.Id} data-index={rec.index} class={rec.classList} draggable={enableDragDrop} 
+                        ondragstart={startDrag} 
+                        ondragover={allowDrop} 
+                        ondrop={dropItem}
+                        ondragleave={dragLeave}
+                        ondragend={dragEnd}                      >
+                            <template for:each={rec.tableData} for:item="cell">
+                                <th key={rec.Id} >
+                                    <template if:true={cell.isUrl}>
+                                        <a  href={cell.url} target="_blank">
+                                            {cell.value}
+                                        </a>
+                                    </template>
+                                    <template if:true={cell.isDate}>
+                                        <lightning-formatted-date-time
+                                                value={cell.value}
+                                                time-zone="UTC">
+                                        </lightning-formatted-date-time>
+                                    </template>
+                                    <template if:true={cell.isText}>
+                                        {cell.value}
+                                    </template>
+                                    <template if:true={cell.isNumber}>
+                                        <lightning-formatted-number value={cell.value}></lightning-formatted-number>
+                                    </template>
+                                </th>
+                            </template>
+                            <template if:true={canEdit}>
+                                <th>
+                                    <lightning-button-icon 
+                                            data-recordid={rec.Id}
+                                            icon-name="utility:edit"  
+                                            variant="bare" 
+                                            alternative-text="Edit" 
+                                            title="Edit"
+                                            onclick={openUpsertRecordModal}>
+                                    </lightning-button-icon>
+                                </th>
+                            </template>
+                            
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </template>
+        <template if:false={hasData}>
+            <p>
+                {labels.noDataAvailable}
+            </p>
+        </template>
+    </lightning-card>
+    <c-upsert-record-modal
+            rec-id={selectedRecordId}
+            class="upsert-record-modal"
+            object-name={objectName}
+            field-set-name={fieldsForCreate}
+            default-field-values={defaultFieldValues}
+            modal-header-label={newRecordButtonLabel}
+            onnewrecordcreatesuccess={handleNewRecordCreateSuccess}>
+    </c-upsert-record-modal>
+
+</template>

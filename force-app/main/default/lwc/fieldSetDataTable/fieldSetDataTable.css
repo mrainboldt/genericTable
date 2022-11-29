@@ -1,0 +1,22 @@
+.pointer{
+    cursor: pointer;
+}
+.dragover {
+	opacity: .5;
+}
+tr .draggable::selection
+{
+    opacity: 1;
+}
+.draggable:hover
+{
+    cursor: grab !important;
+}
+.draggable:active
+{
+    cursor: grabbing !important;
+}
+
+tbody .threshold th{
+    border-top: 4px solid #ac0000 !important;
+}
